@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Tag Test</title>
+    <style>
+        .tag-btn { 
+            padding: 5px 10px; 
+            margin: 5px; 
+            background: #eee; 
+            border: 1px solid #ccc; 
+            display: inline-block; 
+            cursor: pointer; 
+        }
+        .active { background: #4CAF50; color: white; }
+    </style>
+</head>
+<body>
+    <div class="tags-grid">
+        <div class="tag-btn">Action</div>
+        <div class="tag-btn">Adventure</div>
+        <div class="tag-btn">RPG</div>
+        <div class="tag-btn">Strategy</div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const tags = document.querySelectorAll('.tag-btn');
+            console.log('Found', tags.length, 'tag buttons');
+            
+            tags.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    console.log('Clicked:', this.textContent);
+                    this.classList.toggle('active');
+                });
+            });
+        });
+    </script>
+</body>
+</html>

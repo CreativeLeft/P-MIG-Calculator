@@ -1,0 +1,1163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PriceMyIndieGame.com - Strategic Game Pricing Calculator</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #000000;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+            color: white;
+            overflow-x: hidden;
+        }
+
+        body.modal-open {
+            overflow: hidden;
+        }
+
+        .header {
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            padding: 1.2rem 0;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            transform: scale(1.2);
+            transform-origin: top center;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+        }
+
+        .header.scrolled {
+            transform: scale(1.2) translateY(-100%);
+            opacity: 0;
+        }
+
+        .header.visible {
+            transform: scale(1.2) translateY(0);
+            opacity: 1;
+        }
+
+        .premium-btn {
+            background: white;
+            color: black;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 900;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .premium-btn:hover {
+            background: #f0f0f0;
+            transform: translateY(-2px);
+        }
+
+        .hero {
+            padding: 8rem 0 4rem 0;
+            text-align: center;
+            margin: 0;
+            background: #000000;
+        }
+
+        .hero-title {
+            font-size: 3.9rem;
+            font-weight: 700;
+            line-height: 1.1;
+            margin: 0;
+        }
+
+        .highlight {
+            color: white;
+        }
+
+        .calculator-section {
+            padding: 2rem 2rem 4rem 2rem;
+            margin-top: 0;
+            background: #000000;
+            border-top: none;
+        }
+
+        .steam-logo-sticker {
+            position: absolute;
+            top: -39px;
+            right: 26px;
+            width: 104px;
+            height: 104px;
+            z-index: 10;
+            background: rgba(0, 0, 0, 0.49);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(5px);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .steam-logo-sticker:hover {
+            transform: translateY(-5px) rotate(5deg);
+            border-color: rgba(255, 255, 255, 0.6);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+            background: rgba(0, 0, 0, 0.60);
+        }
+
+        .steam-logo-sticker img {
+            width: 85%;
+            height: 85%;
+            object-fit: contain;
+            filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.5));
+            max-width: 85%;
+            max-height: 85%;
+        }
+
+        .steam-logo-fallback {
+            font-size: 3.9rem;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+        }
+
+        .game-type-selection {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            justify-content: center;
+        }
+
+        .type-btn {
+            background: transparent;
+            color: white;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            padding: 0.8rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .type-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .type-btn:hover::before {
+            left: 100%;
+        }
+
+        .type-btn.active {
+            background: white;
+            color: black;
+            border-color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(255, 255, 255, 0.3);
+        }
+
+        .type-btn:hover {
+            transform: translateY(-2px);
+            border-color: rgba(255, 255, 255, 0.6);
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 0.8rem;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 8px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: rgba(255, 255, 255, 0.6);
+            background: rgba(0, 0, 0, 0.9);
+            box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.1);
+        }
+
+        .input-field::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .input-field option {
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 0.5rem;
+        }
+
+        .calculate-btn {
+            background: white;
+            color: black;
+            border: none;
+            padding: 1.5rem 3rem;
+            border-radius: 12px;
+            font-weight: 900;
+            font-size: 2.4rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+        }
+
+        .calculate-btn:hover {
+            background: #f0f0f0;
+            transform: translateY(-2px);
+        }
+
+        .footer {
+            padding: 4rem 2rem 2rem 2rem;
+            background: rgba(0, 0, 0, 0.95);
+            backdrop-filter: blur(15px);
+        }
+
+        .footer-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .footer-left {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .footer-logo {
+            margin-bottom: 1rem;
+        }
+
+        .footer-logo-image {
+            width: 120px;
+            height: 120px;
+            object-fit: contain;
+        }
+
+        .footer-center {
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+        }
+
+        .tags-grid {
+            position: relative !important;
+            width: 100% !important;
+            height: 240px !important;
+            min-height: 240px !important;
+            display: block !important;
+            overflow: hidden !important;
+            padding: 10px !important;
+        }
+        
+        .tag-btn {
+            background: rgba(255, 255, 255, 0.1) !important;
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+            color: rgba(255, 255, 255, 0.8) !important;
+            padding: 0.8rem 1.2rem !important;
+            border-radius: 25px !important;
+            cursor: pointer !important;
+            transition: all 0.3s ease !important;
+            font-size: 1rem !important;
+            font-weight: 600 !important;
+            text-align: center !important;
+            backdrop-filter: blur(5px) !important;
+            position: absolute !important;
+            margin: 0 !important;
+            transform: translate(-50%, -50%) !important;
+            white-space: nowrap !important;
+            z-index: 1 !important;
+        }
+        
+        .tag-btn:hover {
+            background: rgba(255, 255, 255, 0.15) !important;
+            border-color: rgba(255, 255, 255, 0.3) !important;
+            color: #ffffff !important;
+            transform: translate(-50%, -50%) translateY(-2px) !important;
+        }
+        
+        .tag-btn.active {
+            background: #001F41 !important;
+            border-color: #003875 !important;
+            color: #ffffff !important;
+            transform: translate(-50%, -50%) translateY(-2px) !important;
+            box-shadow: 0 4px 12px rgba(0, 31, 65, 0.3) !important;
+        }
+
+        .faq-section h3 {
+            font-size: 2rem;
+            font-style: italic;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            color: white;
+        }
+
+        .faq-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .faq-list li {
+            font-size: 1rem;
+            font-style: italic;
+            color: white;
+            margin-bottom: 0.8rem;
+            position: relative;
+            padding-left: 1.5rem;
+        }
+
+        .faq-list li::before {
+            content: "•";
+            position: absolute;
+            left: 0;
+            color: white;
+        }
+
+        .footer-right {
+            display: flex;
+            justify-content: flex-end;
+            align-items: flex-end;
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 2rem;
+            align-items: flex-end;
+        }
+
+        .footer-links a {
+            color: white;
+            text-decoration: none;
+            font-size: 1rem;
+            transition: opacity 0.3s ease;
+        }
+
+        .footer-links a:hover {
+            opacity: 0.8;
+        }
+
+        .premium-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            pointer-events: none;
+        }
+
+        .premium-modal.active {
+            display: flex;
+            background: rgba(0, 0, 0, 0.8);
+            opacity: 1;
+            animation: modalRise 600ms cubic-bezier(0.25, 0.8, 0.25, 1);
+            pointer-events: auto;
+        }
+
+        .modal-content {
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            border-radius: 16px;
+            padding: 2rem;
+            max-width: 700px;
+            width: 85%;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+            backdrop-filter: blur(25px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transform: scale(0.7) translateY(50px);
+            opacity: 0;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            margin: 0 auto;
+        }
+
+        .premium-modal.active .modal-content {
+            transform: scale(1) translateY(0);
+            opacity: 1;
+            animation: contentRise 700ms cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        @keyframes modalRise {
+            from { transform: translateY(30px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        @keyframes contentRise {
+            from { transform: scale(0.98) translateY(60px); opacity: 0; }
+            to { transform: scale(1) translateY(0); opacity: 1; }
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 1rem;
+            right: 1.5rem;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .close-modal:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: rotate(90deg);
+        }
+
+        .tiers-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.5s ease 0.2s;
+        }
+
+        .premium-modal.active .tiers-grid {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .tier-card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            transform: translateY(20px) rotate(0deg);
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .premium-modal.active .tier-card {
+            transform: translateY(0) rotate(0deg);
+            opacity: 1;
+        }
+
+        .premium-modal.active .tier-card:nth-child(1) { transition-delay: 0.3s; }
+        .premium-modal.active .tier-card:nth-child(2) { transition-delay: 0.4s; }
+        .premium-modal.active .tier-card:nth-child(3) { transition-delay: 0.5s; }
+
+        .tier-card:hover {
+            transform: translateY(-8px) rotate(2deg) scale(1.02);
+            background: rgba(255, 255, 255, 0.18);
+            border-color: rgba(255, 255, 255, 0.5);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        .tier-name {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: white;
+        }
+
+        .tier-subtitle {
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 1rem;
+        }
+
+        .tier-features {
+            list-style: none;
+            padding: 0;
+            margin: 0 0 1.5rem 0;
+        }
+
+        .tier-features li {
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .tier-price {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: white;
+            margin-bottom: 0.5rem;
+        }
+
+        .tier-discount {
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 1rem;
+        }
+
+        .tier-btn {
+            background: white;
+            color: black;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 700;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .tier-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 0, 0, 0.1), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .tier-btn:hover::before {
+            left: 100%;
+        }
+
+        .tier-btn:hover {
+            background: #f0f0f0;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        @media (max-width: 768px) {
+            .tiers-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .hero-title {
+                font-size: 3rem;
+            }
+            
+            .footer-content {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+            
+            .footer-left {
+                align-items: center;
+            }
+            
+            .footer-right {
+                justify-content: center;
+            }
+            
+            .footer-logo-image {
+                width: 100px;
+                height: 100px;
+            }
+            
+            .steam-logo-sticker {
+                width: 80px;
+                height: 80px;
+                top: -30px;
+                left: 20px;
+            }
+            
+            .steam-logo-fallback {
+                font-size: 3rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header" id="header">
+        <div class="header-content">
+            <div class="logo">
+                <img src="logo.png.png" alt="PriceMyIndieGame.com Logo" class="logo-image">
+            </div>
+            
+            <nav class="nav-links">
+                <a href="#how-calculates" class="nav-link">How P*MIG Calculates?</a>
+                <a href="#faqs" class="nav-link">FAQ's</a>
+                <button class="premium-btn get-premium-btn">Get Premium</button>
+                <button class="login-btn">Login</button>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content">
+            <h1 class="hero-title">
+                <span class="title-line">
+                    <span class="muted">SAVE YOUR</span>
+                    <span class="bright"> GAME</span>
+                </span>
+                <span class="title-line muted">FROM A</span>
+                <span class="title-line bright">DISASTROUS</span>
+                <span class="title-line muted">LAUNCH</span>
+            </h1>
+        </div>
+    </section>
+
+    <!-- Calculator Section -->
+    <section class="calculator-section">
+        <div class="calculator-container">
+            <div class="steam-logo-sticker">
+                <img src="steam.png.png" alt="Steam Logo" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                <div class="steam-logo-fallback" style="display: none;">🎮</div>
+            </div>
+            
+            <div class="calculator-content">
+                <!-- Game Type Selection -->
+                <div class="game-type-selection">
+                    <button class="type-btn active" data-type="singleplayer">Singleplayer</button>
+                    <button class="type-btn" data-type="multiplayer">Multiplayer</button>
+                </div>
+
+                <div class="calculator-grid">
+                    <!-- Left Column -->
+                    <div class="input-column">
+                        <div class="input-group">
+                            <label>Name of your game</label>
+                            <input type="text" placeholder="Enter game name" class="input-field">
+                        </div>
+                        
+                        <div class="input-group">
+                            <label>Development Time</label>
+                            <select class="input-field" id="dev-time">
+                                <option value="">Select development time</option>
+                                <option value="1month">1 month</option>
+                                <option value="2months">2 months</option>
+                                <option value="3months">3 months</option>
+                                <option value="4months">4 months</option>
+                                <option value="5months">5 months</option>
+                                <option value="6months">6 months</option>
+                                <option value="7months">7 months</option>
+                                <option value="8months">8 months</option>
+                                <option value="9months">9 months</option>
+                                <option value="10months">10 months</option>
+                                <option value="11months">11 months</option>
+                                <option value="12months">12 months</option>
+                                <option value="13months">13 months</option>
+                                <option value="14months">14 months</option>
+                                <option value="15months">15 months</option>
+                                <option value="16months">16 months</option>
+                                <option value="17months">17 months</option>
+                                <option value="18months">18 months</option>
+                                <option value="19months">19 months</option>
+                                <option value="20months">20 months</option>
+                                <option value="21months">21 months</option>
+                                <option value="22months">22 months</option>
+                                <option value="23months">23 months</option>
+                                <option value="24months">24 months</option>
+                            </select>
+                        </div>
+                        
+                        <div class="input-group">
+                            <label>Marketing Cost</label>
+                            <input type="number" placeholder="Enter amount in USD" class="input-field" id="marketing-cost">
+                        </div>
+                        
+                    </div>
+
+                    <!-- Right Column -->
+                    <div class="input-column">
+                        
+                        <div class="input-group">
+                            <label>Country of origin</label>
+                            <select class="input-field" id="country-origin">
+                                <option value="">Select country</option>
+                                <option value="af">Afghanistan</option>
+                                <option value="al">Albania</option>
+                                <option value="dz">Algeria</option>
+                                <option value="ad">Andorra</option>
+                                <option value="ao">Angola</option>
+                                <option value="ag">Antigua and Barbuda</option>
+                                <option value="ar">Argentina</option>
+                                <option value="am">Armenia</option>
+                                <option value="au">Australia</option>
+                                <option value="at">Austria</option>
+                                <option value="az">Azerbaijan</option>
+                                <option value="bs">Bahamas</option>
+                                <option value="bh">Bahrain</option>
+                                <option value="bd">Bangladesh</option>
+                                <option value="bb">Barbados</option>
+                                <option value="by">Belarus</option>
+                                <option value="be">Belgium</option>
+                                <option value="bz">Belize</option>
+                                <option value="bj">Benin</option>
+                                <option value="bt">Bhutan</option>
+                                <option value="bo">Bolivia</option>
+                                <option value="ba">Bosnia and Herzegovina</option>
+                                <option value="bw">Botswana</option>
+                                <option value="br">Brazil</option>
+                                <option value="bn">Brunei</option>
+                                <option value="bg">Bulgaria</option>
+                                <option value="bf">Burkina Faso</option>
+                                <option value="bi">Burundi</option>
+                                <option value="kh">Cambodia</option>
+                                <option value="cm">Cameroon</option>
+                                <option value="ca">Canada</option>
+                                <option value="cv">Cape Verde</option>
+                                <option value="cf">Central African Republic</option>
+                                <option value="td">Chad</option>
+                                <option value="cl">Chile</option>
+                                <option value="cn">China</option>
+                                <option value="co">Colombia</option>
+                                <option value="km">Comoros</option>
+                                <option value="cg">Congo</option>
+                                <option value="cr">Costa Rica</option>
+                                <option value="hr">Croatia</option>
+                                <option value="cu">Cuba</option>
+                                <option value="cy">Cyprus</option>
+                                <option value="cz">Czech Republic</option>
+                                <option value="dk">Denmark</option>
+                                <option value="dj">Djibouti</option>
+                                <option value="dm">Dominica</option>
+                                <option value="do">Dominican Republic</option>
+                                <option value="ec">Ecuador</option>
+                                <option value="eg">Egypt</option>
+                                <option value="sv">El Salvador</option>
+                                <option value="gq">Equatorial Guinea</option>
+                                <option value="er">Eritrea</option>
+                                <option value="ee">Estonia</option>
+                                <option value="et">Ethiopia</option>
+                                <option value="fj">Fiji</option>
+                                <option value="fi">Finland</option>
+                                <option value="fr">France</option>
+                                <option value="ga">Gabon</option>
+                                <option value="gm">Gambia</option>
+                                <option value="ge">Georgia</option>
+                                <option value="de">Germany</option>
+                                <option value="gh">Ghana</option>
+                                <option value="gr">Greece</option>
+                                <option value="gd">Grenada</option>
+                                <option value="gt">Guatemala</option>
+                                <option value="gn">Guinea</option>
+                                <option value="gw">Guinea-Bissau</option>
+                                <option value="gy">Guyana</option>
+                                <option value="ht">Haiti</option>
+                                <option value="hn">Honduras</option>
+                                <option value="hu">Hungary</option>
+                                <option value="is">Iceland</option>
+                                <option value="in">India</option>
+                                <option value="id">Indonesia</option>
+                                <option value="ir">Iran</option>
+                                <option value="iq">Iraq</option>
+                                <option value="ie">Ireland</option>
+                                <option value="il">Israel</option>
+                                <option value="it">Italy</option>
+                                <option value="jm">Jamaica</option>
+                                <option value="jp">Japan</option>
+                                <option value="jo">Jordan</option>
+                                <option value="kz">Kazakhstan</option>
+                                <option value="ke">Kenya</option>
+                                <option value="ki">Kiribati</option>
+                                <option value="kp">North Korea</option>
+                                <option value="kr">South Korea</option>
+                                <option value="kw">Kuwait</option>
+                                <option value="kg">Kyrgyzstan</option>
+                                <option value="la">Laos</option>
+                                <option value="lv">Latvia</option>
+                                <option value="lb">Lebanon</option>
+                                <option value="ls">Lesotho</option>
+                                <option value="lr">Liberia</option>
+                                <option value="ly">Libya</option>
+                                <option value="li">Liechtenstein</option>
+                                <option value="lt">Lithuania</option>
+                                <option value="lu">Luxembourg</option>
+                                <option value="mk">North Macedonia</option>
+                                <option value="mg">Madagascar</option>
+                                <option value="mw">Malawi</option>
+                                <option value="my">Malaysia</option>
+                                <option value="mv">Maldives</option>
+                                <option value="ml">Mali</option>
+                                <option value="mt">Malta</option>
+                                <option value="mh">Marshall Islands</option>
+                                <option value="mr">Mauritania</option>
+                                <option value="mu">Mauritius</option>
+                                <option value="mx">Mexico</option>
+                                <option value="fm">Micronesia</option>
+                                <option value="md">Moldova</option>
+                                <option value="mc">Monaco</option>
+                                <option value="mn">Mongolia</option>
+                                <option value="me">Montenegro</option>
+                                <option value="ma">Morocco</option>
+                                <option value="mz">Mozambique</option>
+                                <option value="mm">Myanmar</option>
+                                <option value="na">Namibia</option>
+                                <option value="nr">Nauru</option>
+                                <option value="np">Nepal</option>
+                                <option value="nl">Netherlands</option>
+                                <option value="nz">New Zealand</option>
+                                <option value="ni">Nicaragua</option>
+                                <option value="ne">Niger</option>
+                                <option value="ng">Nigeria</option>
+                                <option value="no">Norway</option>
+                                <option value="om">Oman</option>
+                                <option value="pk">Pakistan</option>
+                                <option value="pw">Palau</option>
+                                <option value="pa">Panama</option>
+                                <option value="pg">Papua New Guinea</option>
+                                <option value="py">Paraguay</option>
+                                <option value="pe">Peru</option>
+                                <option value="ph">Philippines</option>
+                                <option value="pl">Poland</option>
+                                <option value="pt">Portugal</option>
+                                <option value="qa">Qatar</option>
+                                <option value="ro">Romania</option>
+                                <option value="ru">Russia</option>
+                                <option value="rw">Rwanda</option>
+                                <option value="kn">Saint Kitts and Nevis</option>
+                                <option value="lc">Saint Lucia</option>
+                                <option value="vc">Saint Vincent and the Grenadines</option>
+                                <option value="ws">Samoa</option>
+                                <option value="sm">San Marino</option>
+                                <option value="st">Sao Tome and Principe</option>
+                                <option value="sa">Saudi Arabia</option>
+                                <option value="sn">Senegal</option>
+                                <option value="rs">Serbia</option>
+                                <option value="sc">Seychelles</option>
+                                <option value="sl">Sierra Leone</option>
+                                <option value="sg">Singapore</option>
+                                <option value="sk">Slovakia</option>
+                                <option value="si">Slovenia</option>
+                                <option value="sb">Solomon Islands</option>
+                                <option value="so">Somalia</option>
+                                <option value="za">South Africa</option>
+                                <option value="es">Spain</option>
+                                <option value="lk">Sri Lanka</option>
+                                <option value="sd">Sudan</option>
+                                <option value="sr">Suriname</option>
+                                <option value="sz">Eswatini</option>
+                                <option value="se">Sweden</option>
+                                <option value="ch">Switzerland</option>
+                                <option value="sy">Syria</option>
+                                <option value="tw">Taiwan</option>
+                                <option value="tj">Tajikistan</option>
+                                <option value="tz">Tanzania</option>
+                                <option value="th">Thailand</option>
+                                <option value="tl">Timor-Leste</option>
+                                <option value="tg">Togo</option>
+                                <option value="to">Tonga</option>
+                                <option value="tt">Trinidad and Tobago</option>
+                                <option value="tn">Tunisia</option>
+                                <option value="tr">Turkey</option>
+                                <option value="tm">Turkmenistan</option>
+                                <option value="tv">Tuvalu</option>
+                                <option value="ug">Uganda</option>
+                                <option value="ua">Ukraine</option>
+                                <option value="ae">United Arab Emirates</option>
+                                <option value="gb">United Kingdom</option>
+                                <option value="us">United States</option>
+                                <option value="uy">Uruguay</option>
+                                <option value="uz">Uzbekistan</option>
+                                <option value="vu">Vanuatu</option>
+                                <option value="va">Vatican City</option>
+                                <option value="ve">Venezuela</option>
+                                <option value="vn">Vietnam</option>
+                                <option value="ye">Yemen</option>
+                                <option value="zm">Zambia</option>
+                                <option value="zw">Zimbabwe</option>
+                            </select>
+                        </div>
+                        
+                        <div class="input-group">
+                            <label>x Team Size</label>
+                            <select class="input-field">
+                                <option value="">Select team size</option>
+        <option value="1">1</option>
+        <option value="2">2</option>
+        <option value="3">3</option>
+        <option value="4">4</option>
+        <option value="5">5</option>
+        <option value="6">6</option>
+        <option value="7">7</option>
+        <option value="8">8</option>
+        <option value="9">9</option>
+        <option value="10">10</option>
+        <option value="11">11</option>
+        <option value="12">12</option>
+        <option value="13">13</option>
+        <option value="14">14</option>
+        <option value="15">15</option>
+        <option value="16">16</option>
+        <option value="17">17</option>
+        <option value="18">18</option>
+        <option value="19">19</option>
+        <option value="20">20</option>
+        <option value="21">21</option>
+        <option value="22">22</option>
+        <option value="23">23</option>
+        <option value="24">24</option>
+                            </select>
+                        </div>
+                        
+                        <div class="input-group">
+                            <label>Wishlist Count</label>
+                            <input type="number" placeholder="Enter wishlist count" class="input-field" id="wishlist-count">
+                        </div>
+                        
+                    </div>
+                </div>
+
+                <!-- Adjustments Section -->
+                <div class="adjustments-section">
+                    <h3>Select Adjustments (Optional)</h3>
+                    <div class="adjustment-options">
+                        <label class="checkbox-option">
+                            <input type="checkbox" checked>
+                            <span class="checkmark"></span>
+                            Steam's 30% cut
+                        </label>
+                        <label class="checkbox-option">
+                            <input type="checkbox">
+                            <span class="checkmark"></span>
+                            Refund Rate 10-15%
+                        </label>
+                        <label class="checkbox-option">
+                            <input type="checkbox">
+                            <span class="checkmark"></span>
+                            Chargebacks 2-5%
+                        </label>
+                    </div>
+                    <div class="input-group">
+                        <label>General Discounting</label>
+                        <input type="number" placeholder="Enter discount percentage" class="input-field">
+                    </div>
+                </div>
+
+                <!-- Game Tags Selection -->
+                <div class="tags-section">
+                    <h3>Choose your game's top 5 tags</h3>
+                    <div class="tags-grid" id="tags-container">
+                        <button class="tag-btn" data-tag="strategy">Strategy</button>
+                        <button class="tag-btn" data-tag="rpg">RPG</button>
+                        <button class="tag-btn" data-tag="action">Action</button>
+                        <button class="tag-btn" data-tag="horror">Horror</button>
+                        <button class="tag-btn" data-tag="cozy">Cozy</button>
+                        <button class="tag-btn" data-tag="scifi">Sci-Fi</button>
+                        <button class="tag-btn" data-tag="adventure">Adventure</button>
+                        <button class="tag-btn" data-tag="storyrich">Story Rich</button>
+                        <button class="tag-btn" data-tag="puzzle">Puzzle Games</button>
+                        <button class="tag-btn" data-tag="shooter">Shooter</button>
+                        <button class="tag-btn" data-tag="sports">Sports</button>
+                        <button class="tag-btn" data-tag="simulation">Simulation</button>
+                        <button class="tag-btn" data-tag="postapocalyptic">Post Apocalyptic</button>
+                        <button class="tag-btn" data-tag="comedy">Comedy</button>
+                        <button class="tag-btn" data-tag="survival">Survival</button>
+                        <button class="tag-btn" data-tag="cyberpunk">Cyberpunk</button>
+                        <button class="tag-btn" data-tag="noir">Noir/Detective</button>
+                        <button class="tag-btn" data-tag="darkfantasy">Dark Fantasy</button>
+                        <button class="tag-btn" data-tag="fantasy">Fantasy</button>
+                        <button class="tag-btn" data-tag="historical">Historical</button>
+                    </div>
+                </div>
+
+                <!-- Scope/Playtime Selection -->
+                <div class="scope-section">
+                    <h3>Scope/Average Playtime</h3>
+                    <div class="scope-buttons">
+                        <button class="scope-btn" data-scope="compact">Compact (0-5 hours)</button>
+                        <button class="scope-btn" data-scope="standard">Standard (5-15 hours)</button>
+                        <button class="scope-btn" data-scope="high">High (15+ hours)</button>
+                    </div>
+                </div>
+
+                <!-- Calculate Button -->
+                <div class="calculate-section">
+                    <button class="calculate-btn" id="calcBtn">Calculate Now</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Results Modal (Prices A-D) -->
+    <div class="results-modal" id="results-modal" style="display: none;">
+        <div class="results-content">
+            <div class="results-header">🎮 Your Game Pricing Results</div>
+            <div class="price-list">
+                <div class="price-item price-a-main">
+                    <span class="price-label">Price A - Average Market Price:</span>
+                    <span class="price-value" id="price-a-value">N/A</span>
+                </div>
+                
+                <!-- Game Artwork Showcase -->
+                <div class="games-showcase" id="games-showcase">
+                    <div class="showcase-title">Games used for calculation:</div>
+                    <div class="game-images">
+                        <div class="game-image-box" id="game-img-1"></div>
+                        <div class="game-image-box" id="game-img-2"></div>
+                        <div class="game-image-box" id="game-img-3"></div>
+                        <div class="game-image-box" id="game-img-4"></div>
+                        <div class="game-image-box" id="game-img-5"></div>
+                    </div>
+                </div>
+                
+                <div class="price-group-secondary">
+                    <div class="price-item">
+                        <span class="price-label">Price B - Recommended Base Price:</span>
+                        <span class="price-value" id="price-b-value">N/A</span>
+                    </div>
+                    <div class="price-item">
+                        <span class="price-label">Price C - Maximum Retail Price:</span>
+                        <span class="price-value" id="price-c-value">N/A</span>
+                    </div>
+                    <div class="price-item">
+                        <span class="price-label">Price D - Minimum Retail Price:</span>
+                        <span class="price-value" id="price-d-value">N/A</span>
+                    </div>
+                </div>
+            </div>
+            <div class="results-actions">
+                <button class="results-close" id="resultsClose">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- How P*MIG Calculates Section -->
+    <section id="how-calculates" class="how-calculates">
+        <div class="container">
+            <h2>Here is how P*MIG Calculates!</h2>
+            <div class="calculation-content">
+                <div class="calculation-steps">
+                    <div class="step">
+                        <div class="step-number">1</div>
+                        <div class="step-content">
+                            <h3>Market Analysis</h3>
+                            <p>We analyze similar games in your genre, considering factors like development time, team size, and market positioning.</p>
+                        </div>
+                    </div>
+                    <div class="step">
+                        <div class="step-number">2</div>
+                        <div class="step-content">
+                            <h3>Cost Calculation</h3>
+                            <p>We factor in your development costs, marketing expenses, and Steam's revenue share to determine your break-even point.</p>
+                        </div>
+                    </div>
+                    <div class="step">
+                        <div class="step-number">3</div>
+                        <div class="step-content">
+                            <h3>Competitive Pricing</h3>
+                            <p>We compare your game's value proposition against competitors to find the optimal price point for maximum sales.</p>
+                        </div>
+                    </div>
+                    <div class="step">
+                        <div class="step-number">4</div>
+                        <div class="step-content">
+                            <h3>Strategy Recommendations</h3>
+                            <p>We provide multiple pricing strategies including launch pricing, seasonal discounts, and bundle opportunities.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer" id="faqs">
+        <div class="footer-content">
+            <div class="footer-left">
+                <div class="footer-logo">
+                    <img src="logo.png.png" alt="PriceMyIndieGame.com Logo" class="footer-logo-image">
+                </div>
+            </div>
+            
+            <div class="footer-center">
+                <div class="faq-section">
+                    <h3>FAQ's</h3>
+                    <ul class="faq-list">
+                        <li>WTF P*MIG is?</li>
+                        <li>Why pricing your indie game is crucial?</li>
+                        <li>Is it necessary to take the premium version?</li>
+                        <li>What is Maximum Retailable Price?</li>
+                        <li>What is Minimum Retailable Price?</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="footer-right">
+                <div class="footer-links">
+                    <a href="#contact">Contact</a>
+                    <a href="#privacy">Privacy Policy</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Premium Modal - Enhanced with animations -->
+    <!-- Premium Modal -->
+    <div class="premium-modal" id="premiumModal">
+        <div class="modal-content">
+            <button class="close-modal close-btn">&times;</button>
+            <h2 style="text-align: center; margin-bottom: 2rem; color: white;">Choose Your Plan</h2>
+            <div class="tiers-grid">
+                <div class="tier-card">
+                    <div class="tier-name">For Solo/Tiny Indie Team</div>
+                    <div class="tier-subtitle">Get P*MIG for Life</div>
+                    <div class="tier-subtitle">For Solo/Hobbiest/Small Indies</div>
+                    <ul class="tier-features">
+                        <li>Unlimited Game Pricing</li>
+                        <li>Unlock all 4 prices</li>
+                        <li>Unlimited Iterations</li>
+                        <li>3 Comparing Games</li>
+                    </ul>
+                    <div class="tier-price">$15</div>
+                    <div class="tier-discount">(25% Discount)</div>
+                    <form><script src="https://checkout.razorpay.com/v1/payment-button.js" data-payment_button_id="pl_RDSPDVPZFTbYV7" async> </script> </form>
+                </div>
+                
+                <div class="tier-card">
+                    <div class="tier-name">For Big Indie Teams</div>
+                    <div class="tier-subtitle">Get P*MIG for Life</div>
+                    <div class="tier-subtitle">For Big Indie Teams</div>
+                    <ul class="tier-features">
+                        <li>Unlimited Game Pricing</li>
+                        <li>Unlock all 4 prices</li>
+                        <li>Unlimited Iterations</li>
+                        <li>5 Comparing Games</li>
+                        <li>Priority Support</li>
+                    </ul>
+                    <div class="tier-price">$25</div>
+                    <div class="tier-discount">(15% Discount)</div>
+                    <form><script src="https://checkout.razorpay.com/v1/payment-button.js" data-payment_button_id="pl_RDSPyVJ41ZrAXj" async> </script> </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
+
+{{ ... rest of the code remains the same ... }}
+</body>
+</html>
