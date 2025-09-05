@@ -1206,7 +1206,7 @@ document.addEventListener('DOMContentLoaded', function() {
             initApp();
         }
         
-        // Tag button functionality with random positioning
+        // Tag button functionality with grid layout and displacement animation
         const tagButtons = document.querySelectorAll('.tag-btn');
         console.log('Found tag buttons:', tagButtons.length);
         
@@ -1215,38 +1215,38 @@ document.addEventListener('DOMContentLoaded', function() {
             const container = document.getElementById('tags-container');
             console.log('Tags container:', container);
         }
-        
-        // Compact uniform layout for half-height container
-        const scatteredPositions = [
-            { top: '10%', left: '15%' },  // Strategy
-            { top: '10%', left: '45%' },  // RPG
-            { top: '10%', left: '75%' },  // Action
-            { top: '25%', left: '8%' },   // Horror
-            { top: '25%', left: '32%' },  // Cozy
-            { top: '25%', left: '58%' },  // Shooter
-            { top: '25%', left: '82%' },  // Sports
-            { top: '40%', left: '18%' },  // Simulation
-            { top: '40%', left: '48%' },  // Post Apocalyptic
-            { top: '40%', left: '78%' },  // Comedy
-            { top: '55%', left: '12%' },  // Survival
-            { top: '55%', left: '38%' },  // Cyberpunk
-            { top: '55%', left: '65%' },  // Noir/Detective
-            { top: '70%', left: '5%' },   // Dark Fantasy
-            { top: '70%', left: '28%' },  // Sci-Fi
-            { top: '70%', left: '52%' },  // Fantasy
-            { top: '70%', left: '78%' },  // Historical
-            { top: '85%', left: '18%' },  // Adventure
-            { top: '85%', left: '48%' },  // Story Rich
-            { top: '85%', left: '78%' }   // Puzzle Games
+
+        // Exact 20-tag layout - properly contained within bounds
+        const staggeredPositions = [
+            { top: '8%', left: '30%' },    // Strategy
+            { top: '8%', left: '60%' },    // RPG
+            { top: '20%', left: '18%' },   // Action
+            { top: '20%', left: '43%' },   // Horror
+            { top: '20%', left: '68%' },   // Cozy
+            { top: '32%', left: '33%' },   // Sci-Fi
+            { top: '32%', left: '58%' },   // Adventure
+            { top: '44%', left: '13%' },   // Story Rich
+            { top: '44%', left: '38%' },   // Puzzle Games
+            { top: '44%', left: '68%' },   // Shooter
+            { top: '56%', left: '23%' },   // Sports
+            { top: '56%', left: '48%' },   // Simulation
+            { top: '56%', left: '73%' },   // Post Apocalyptic
+            { top: '68%', left: '28%' },   // Comedy
+            { top: '68%', left: '58%' },   // Survival
+            { top: '80%', left: '13%' },   // Cyberpunk
+            { top: '80%', left: '38%' },   // Noir/Detective
+            { top: '80%', left: '68%' },   // Dark Fantasy
+            { top: '92%', left: '28%' },   // Fantasy
+            { top: '92%', left: '58%' }    // Historical
         ];
 
         tagButtons.forEach((button, index) => {
             console.log(`Setting up tag button ${index}: ${button.textContent}`);
             
-            // Apply scattered position
-            if (scatteredPositions[index]) {
-                button.style.top = scatteredPositions[index].top;
-                button.style.left = scatteredPositions[index].left;
+            // Apply staggered position
+            if (staggeredPositions[index]) {
+                button.style.top = staggeredPositions[index].top;
+                button.style.left = staggeredPositions[index].left;
             }
             
             // Force styles to ensure clickability
@@ -1254,39 +1254,72 @@ document.addEventListener('DOMContentLoaded', function() {
             button.style.cursor = 'pointer';
             button.style.userSelect = 'none';
             
-            // Add multiple event types
-            ['click', 'mousedown', 'touchstart'].forEach(eventType => {
-                button.addEventListener(eventType, function(e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    
-                    if (eventType === 'click') {
-                        console.log('Tag clicked:', this.textContent);
-                        
-                        // Add subtle scatter animation on click - keep position
-                        const randomX = (Math.random() - 0.5) * 8; // -4px to +4px
-                        const randomY = (Math.random() - 0.5) * 8; // -4px to +4px
-                        const randomRotate = (Math.random() - 0.5) * 4; // -2deg to +2deg
-                        
-                        this.style.transform = `translate(-50%, -50%) translate(${randomX}px, ${randomY}px) rotate(${randomRotate}deg)`;
-                        
-                        // Don't reset position - keep the tag where it moved to
-                        
-                        const isActive = this.classList.contains('active');
-                        if (isActive) {
-                            this.classList.remove('active');
-                            console.log('Removed active');
-                        } else {
-                            const activeCount = document.querySelectorAll('.tag-btn.active').length;
-                            if (activeCount < 5) {
-                                this.classList.add('active');
-                                console.log('Added active');
-                            } else {
-                                console.log('Max 5 tags reached');
-                            }
-                        }
+            // Add click event for tag selection
+            button.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                console.log('Tag clicked:', this.textContent);
+                
+                // Handle tag selection (max 5 tags)
+                const isActive = this.classList.contains('active');
+                if (isActive) {
+                    this.classList.remove('active');
+                    console.log('Removed active');
+                } else {
+                    const activeCount = document.querySelectorAll('.tag-btn.active').length;
+                    if (activeCount < 5) {
+                        this.classList.add('active');
+                        console.log('Added active');
+                    } else {
+                        console.log('Max 5 tags reached - showing rejection feedback');
+                        // Show red rejection feedback
+                        this.classList.add('rejected');
+                        setTimeout(() => {
+                            this.classList.remove('rejected');
+                        }, 1000);
                     }
+                }
+            });
+            
+            // Add hover effects for rejection feedback
+            button.addEventListener('mouseenter', function() {
+                const activeCount = document.querySelectorAll('.tag-btn.active').length;
+                const isActive = this.classList.contains('active');
+                
+                // Show red on hover if trying to select more than 5 tags
+                if (!isActive && activeCount >= 5) {
+                    this.classList.add('rejected');
+                }
+            });
+            
+            button.addEventListener('mouseleave', function() {
+                // Remove rejection styling when mouse leaves
+                this.classList.remove('rejected');
+            });
+        });
+        
+        // FAQ Accordion functionality
+        const faqQuestions = document.querySelectorAll('.faq-question');
+        faqQuestions.forEach(question => {
+            question.addEventListener('click', function() {
+                const faqId = this.dataset.faq;
+                const answer = document.getElementById(`faq-${faqId}`);
+                const isActive = this.classList.contains('active');
+                
+                // Close all other FAQ items
+                faqQuestions.forEach(q => {
+                    q.classList.remove('active');
+                    const otherId = q.dataset.faq;
+                    const otherAnswer = document.getElementById(`faq-${otherId}`);
+                    otherAnswer.classList.remove('active');
                 });
+                
+                // Toggle current FAQ item
+                if (!isActive) {
+                    this.classList.add('active');
+                    answer.classList.add('active');
+                }
             });
         });
         

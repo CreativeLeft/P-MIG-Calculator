@@ -3,7 +3,7 @@ const https = require('https');
 const fs = require('fs');
 const path = require('path');
 
-const port = 3002;
+const port = 3003;
 
 // MIME types for different file extensions
 const mimeTypes = {

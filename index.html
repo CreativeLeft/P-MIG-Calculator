@@ -268,11 +268,12 @@
         .tags-grid {
             position: relative !important;
             width: 100% !important;
-            height: 240px !important;
-            min-height: 240px !important;
+            height: 400px !important;
+            padding: 1rem !important;
+            max-width: 800px !important;
+            margin: 0 auto !important;
             display: block !important;
             overflow: hidden !important;
-            padding: 10px !important;
         }
         
         .tag-btn {
@@ -287,26 +288,42 @@
             font-weight: 600 !important;
             text-align: center !important;
             backdrop-filter: blur(5px) !important;
-            position: absolute !important;
-            margin: 0 !important;
-            transform: translate(-50%, -50%) !important;
             white-space: nowrap !important;
             z-index: 1 !important;
+            position: absolute !important;
+            transform: translate(-50%, -50%) !important;
         }
         
         .tag-btn:hover {
             background: rgba(255, 255, 255, 0.15) !important;
             border-color: rgba(255, 255, 255, 0.3) !important;
             color: #ffffff !important;
-            transform: translate(-50%, -50%) translateY(-2px) !important;
+            transform: translate(-50%, -50%) !important;
         }
         
         .tag-btn.active {
             background: #001F41 !important;
             border-color: #003875 !important;
             color: #ffffff !important;
-            transform: translate(-50%, -50%) translateY(-2px) !important;
+            transform: translate(-50%, -50%) !important;
             box-shadow: 0 4px 12px rgba(0, 31, 65, 0.3) !important;
+        }
+        
+        .tag-btn.rejected {
+            background: rgba(139, 0, 0, 0.8) !important;
+            border: 2px solid #8B0000 !important;
+            color: #ffffff !important;
+            box-shadow: 0 0 15px rgba(220, 53, 69, 0.6), inset 0 0 10px rgba(139, 0, 0, 0.3) !important;
+            transform: translate(-50%, -50%) !important;
+            animation: rejectionShake 0.5s ease-in-out !important;
+        }
+        
+        @keyframes rejectionShake {
+            0% { transform: translate(-50%, -50%) translateX(0); }
+            25% { transform: translate(-50%, -50%) translateX(-2px); }
+            50% { transform: translate(-50%, -50%) translateX(2px); }
+            75% { transform: translate(-50%, -50%) translateX(-1px); }
+            100% { transform: translate(-50%, -50%) translateX(0); }
         }
 
         .faq-section h3 {
@@ -317,25 +334,68 @@
             color: white;
         }
 
-        .faq-list {
-            list-style: none;
+        .faq-content {
+            max-width: 600px;
+        }
+
+        .faq-item {
+            margin-bottom: 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .faq-question {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            padding: 1rem 0;
+            transition: all 0.3s ease;
+        }
+
+        .faq-question:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .faq-question h4 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: white;
+            margin: 0;
+        }
+
+        .faq-toggle {
+            font-size: 1.5rem;
+            color: white;
+            font-weight: bold;
+            transition: transform 0.3s ease;
+        }
+
+        .faq-question.active .faq-toggle {
+            transform: rotate(45deg);
+        }
+
+        .faq-answer {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
             padding: 0;
         }
 
-        .faq-list li {
-            font-size: 1rem;
-            font-style: italic;
-            color: white;
-            margin-bottom: 0.8rem;
-            position: relative;
-            padding-left: 1.5rem;
+        .faq-answer.active {
+            max-height: 300px;
+            padding: 0 0 1rem 0;
         }
 
-        .faq-list li::before {
-            content: "•";
-            position: absolute;
-            left: 0;
+        .faq-answer p {
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.9);
+            line-height: 1.5;
+            margin-bottom: 0.5rem;
+        }
+
+        .faq-answer p strong {
             color: white;
+            font-weight: 600;
         }
 
         .footer-right {
@@ -1097,13 +1157,53 @@
             <div class="footer-center">
                 <div class="faq-section">
                     <h3>FAQ's</h3>
-                    <ul class="faq-list">
-                        <li>WTF P*MIG is?</li>
-                        <li>Why pricing your indie game is crucial?</li>
-                        <li>Is it necessary to take the premium version?</li>
-                        <li>What is Maximum Retailable Price?</li>
-                        <li>What is Minimum Retailable Price?</li>
-                    </ul>
+                    <div class="faq-content">
+                        <div class="faq-item">
+                            <div class="faq-question" data-faq="1">
+                                <h4>1. WTF is P*MIG?</h4>
+                                <span class="faq-toggle">+</span>
+                            </div>
+                            <div class="faq-answer" id="faq-1">
+                                <p>P*MIG (Price My Indie Game) is a data-driven calculator that helps you find the perfect price for your game. We analyze your costs, genre trends, and market data to recommend strategic price points—so you stop guessing and start earning what you're worth.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="faq-item">
+                            <div class="faq-question" data-faq="2">
+                                <h4>2. Why is strategic pricing crucial?</h4>
+                                <span class="faq-toggle">+</span>
+                            </div>
+                            <div class="faq-answer" id="faq-2">
+                                <p>Pricing blindly can kill a great game. Strategic pricing maximizes revenue, respects your players' budgets, and ensures your hard work pays the bills. It's the difference between profitability and obscurity.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="faq-item">
+                            <div class="faq-question" data-faq="3">
+                                <h4>3. What is Maximum Retail Price (MRP)?</h4>
+                                <span class="faq-toggle">+</span>
+                            </div>
+                            <div class="faq-answer" id="faq-3">
+                                <p>The MRP is the highest recommended price, targeting players who value premium quality and are less price-sensitive.</p>
+                                <p><strong>Side Effects:</strong><br>
+                                ↳ May reduce sales volume if perceived as too high.<br>
+                                ↳ Can attract more critical reviews if value isn't justified.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="faq-item">
+                            <div class="faq-question" data-faq="4">
+                                <h4>4. What is Minimum Retail Price?</h4>
+                                <span class="faq-toggle">+</span>
+                            </div>
+                            <div class="faq-answer" id="faq-4">
+                                <p>The lowest recommended price, aimed at maximizing sales volume, capturing price-sensitive players, or building wishlists rapidly.</p>
+                                <p><strong>Side Effects:</strong><br>
+                                ↳ Risks lower revenue per sale and potential devaluation of your game.<br>
+                                ↳ Can set unsustainable expectations for future pricing.</p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
             
@@ -1156,7 +1256,7 @@
                         </div>
                     </div>
                     
-                    <button class="get-pmig-btn">Get P*MIG For Life</button>
+                    <a href="https://rzp.io/rzp/G9qznz0R" target="_blank" class="get-pmig-btn" style="text-decoration: none; display: block; text-align: center;">Get P*MIG For Life</a>
                 </div>
                 
                 <div class="pricing-card">
@@ -1185,7 +1285,7 @@
                         </div>
                     </div>
                     
-                    <button class="get-pmig-btn">Get P*MIG For Life</button>
+                    <a href="https://rzp.io/rzp/NcDmU1iO" target="_blank" class="get-pmig-btn" style="text-decoration: none; display: block; text-align: center;">Get P*MIG For Life</a>
                 </div>
             </div>
             
@@ -1197,9 +1297,5 @@
     </div>
 
     <script src="script.js"></script>
-</body>
-</html>
-
-{{ ... rest of the code remains the same ... }}
 </body>
 </html>
