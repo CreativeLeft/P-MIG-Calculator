@@ -265,65 +265,73 @@
             align-items: flex-start;
         }
 
-        .tags-grid {
-            position: relative !important;
-            width: 100% !important;
-            height: 400px !important;
-            padding: 1rem !important;
+        .tags-container {
             max-width: 800px !important;
             margin: 0 auto !important;
-            display: block !important;
-            overflow: hidden !important;
+            padding: 1.5rem !important;
+            background: rgba(0, 0, 0, 0.3) !important;
+            border-radius: 16px !important;
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        }
+
+        .tags-grid {
+            display: grid !important;
+            grid-template-columns: repeat(4, 1fr) !important;
+            gap: 0.5rem !important;
+            width: 100% !important;
+            padding: 0 !important;
+            max-width: 100% !important;
+            box-sizing: border-box !important;
         }
         
         .tag-btn {
             background: rgba(255, 255, 255, 0.1) !important;
             border: 1px solid rgba(255, 255, 255, 0.2) !important;
             color: rgba(255, 255, 255, 0.8) !important;
-            padding: 0.8rem 1.2rem !important;
-            border-radius: 25px !important;
+            padding: 0.6rem 0.8rem !important;
+            border-radius: 20px !important;
             cursor: pointer !important;
-            transition: all 0.3s ease !important;
-            font-size: 1rem !important;
+            font-size: 0.85rem !important;
             font-weight: 600 !important;
             text-align: center !important;
             backdrop-filter: blur(5px) !important;
             white-space: nowrap !important;
             z-index: 1 !important;
-            position: absolute !important;
-            transform: translate(-50%, -50%) !important;
+            position: relative !important;
+            width: 100% !important;
+            height: 40px !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            margin: 0 !important;
+            box-sizing: border-box !important;
         }
         
         .tag-btn:hover {
             background: rgba(255, 255, 255, 0.15) !important;
             border-color: rgba(255, 255, 255, 0.3) !important;
             color: #ffffff !important;
-            transform: translate(-50%, -50%) !important;
         }
         
         .tag-btn.active {
             background: #001F41 !important;
             border-color: #003875 !important;
             color: #ffffff !important;
-            transform: translate(-50%, -50%) !important;
             box-shadow: 0 4px 12px rgba(0, 31, 65, 0.3) !important;
         }
         
         .tag-btn.rejected {
-            background: rgba(139, 0, 0, 0.8) !important;
-            border: 2px solid #8B0000 !important;
+            background: rgba(220, 53, 69, 0.3) !important;
+            border-color: rgba(220, 53, 69, 0.8) !important;
             color: #ffffff !important;
-            box-shadow: 0 0 15px rgba(220, 53, 69, 0.6), inset 0 0 10px rgba(139, 0, 0, 0.3) !important;
-            transform: translate(-50%, -50%) !important;
-            animation: rejectionShake 0.5s ease-in-out !important;
+            box-shadow: 0 0 15px rgba(220, 53, 69, 0.6) !important;
+            animation: rejectionShake 0.6s ease-in-out !important;
         }
-        
+
         @keyframes rejectionShake {
-            0% { transform: translate(-50%, -50%) translateX(0); }
-            25% { transform: translate(-50%, -50%) translateX(-2px); }
-            50% { transform: translate(-50%, -50%) translateX(2px); }
-            75% { transform: translate(-50%, -50%) translateX(-1px); }
-            100% { transform: translate(-50%, -50%) translateX(0); }
+            0%, 100% { transform: translate(-50%, -50%) translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translate(-50%, -50%) translateX(-3px); }
+            20%, 40%, 60%, 80% { transform: translate(-50%, -50%) translateX(3px); }
         }
 
         .faq-section h3 {
@@ -1021,27 +1029,29 @@
                 <!-- Game Tags Selection -->
                 <div class="tags-section">
                     <h3>Choose your game's top 5 tags</h3>
-                    <div class="tags-grid" id="tags-container">
-                        <button class="tag-btn" data-tag="strategy">Strategy</button>
-                        <button class="tag-btn" data-tag="rpg">RPG</button>
-                        <button class="tag-btn" data-tag="action">Action</button>
-                        <button class="tag-btn" data-tag="horror">Horror</button>
-                        <button class="tag-btn" data-tag="cozy">Cozy</button>
-                        <button class="tag-btn" data-tag="scifi">Sci-Fi</button>
-                        <button class="tag-btn" data-tag="adventure">Adventure</button>
-                        <button class="tag-btn" data-tag="storyrich">Story Rich</button>
-                        <button class="tag-btn" data-tag="puzzle">Puzzle Games</button>
-                        <button class="tag-btn" data-tag="shooter">Shooter</button>
-                        <button class="tag-btn" data-tag="sports">Sports</button>
-                        <button class="tag-btn" data-tag="simulation">Simulation</button>
-                        <button class="tag-btn" data-tag="postapocalyptic">Post Apocalyptic</button>
-                        <button class="tag-btn" data-tag="comedy">Comedy</button>
-                        <button class="tag-btn" data-tag="survival">Survival</button>
-                        <button class="tag-btn" data-tag="cyberpunk">Cyberpunk</button>
-                        <button class="tag-btn" data-tag="noir">Noir/Detective</button>
-                        <button class="tag-btn" data-tag="darkfantasy">Dark Fantasy</button>
-                        <button class="tag-btn" data-tag="fantasy">Fantasy</button>
-                        <button class="tag-btn" data-tag="historical">Historical</button>
+                    <div class="tags-container">
+                        <div class="tags-grid" id="tags-container">
+                        <button class="tag-btn" data-tag="Action">Action</button>
+                        <button class="tag-btn" data-tag="RPG">RPG</button>
+                        <button class="tag-btn" data-tag="Strategy">Strategy</button>
+                        <button class="tag-btn" data-tag="Simulation">Simulation</button>
+                        <button class="tag-btn" data-tag="Adventure">Adventure</button>
+                        <button class="tag-btn" data-tag="Shooter">Shooter</button>
+                        <button class="tag-btn" data-tag="Sports">Sports</button>
+                        <button class="tag-btn" data-tag="Puzzle Games">Puzzle Games</button>
+                        <button class="tag-btn" data-tag="Cozy/Relaxing">Cozy/Relaxing</button>
+                        <button class="tag-btn" data-tag="Fantasy">Fantasy</button>
+                        <button class="tag-btn" data-tag="Story Rich">Story Rich</button>
+                        <button class="tag-btn" data-tag="Survival">Survival</button>
+                        <button class="tag-btn" data-tag="Horror">Horror</button>
+                        <button class="tag-btn" data-tag="Sci-fi">Sci-fi</button>
+                        <button class="tag-btn" data-tag="Post Apocalyptic">Post Apocalyptic</button>
+                        <button class="tag-btn" data-tag="Historical">Historical</button>
+                        <button class="tag-btn" data-tag="Dark Fantasy">Dark Fantasy</button>
+                        <button class="tag-btn" data-tag="Comedy">Comedy</button>
+                        <button class="tag-btn" data-tag="Cyberpunk/Dystopian">Cyberpunk/Dystopian</button>
+                        <button class="tag-btn" data-tag="Noir/Detective">Noir/Detective</button>
+                        </div>
                     </div>
                 </div>
 
@@ -1146,7 +1156,7 @@
     </section>
 
     <!-- Footer -->
-    <footer class="footer" id="faqs">
+    <footer class="footer">
         <div class="footer-content">
             <div class="footer-left">
                 <div class="footer-logo">
@@ -1155,7 +1165,7 @@
             </div>
             
             <div class="footer-center">
-                <div class="faq-section">
+                <div class="faq-section" id="faqs">
                     <h3>FAQ's</h3>
                     <div class="faq-content">
                         <div class="faq-item">

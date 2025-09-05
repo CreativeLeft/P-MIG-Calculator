@@ -70,6 +70,21 @@ function initApp() {
         });
     }
 
+    // Smooth scrolling for FAQ link
+    const faqLink = document.querySelector('a[href="#faqs"]');
+    if (faqLink) {
+        faqLink.addEventListener('click', function(e) {
+            e.preventDefault();
+            const targetSection = document.getElementById('faqs');
+            if (targetSection) {
+                targetSection.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            }
+        });
+    }
+
     // 1) Load CSV from your published sheet via server proxy
     const CSV_URL = '/api/sheets';
     
@@ -105,8 +120,8 @@ Game20,RPG,Compact 0-5h,17.99`;
           csvText = await res.text();
           console.log('✅ Successfully loaded from Google Sheet');
         } catch (fetchError) {
-          console.error('⚠️ Failed to load from Google Sheet:', fetchError.message);
-          console.log('Using sample data as fallback');
+          console.log('⚠️ Failed to load from Google Sheet, using fallback data');
+          console.error('Sheet load error details:', fetchError);
           csvText = SAMPLE_CSV_DATA;
         }
         console.log('Raw CSV text length:', csvText.length);
@@ -213,6 +228,8 @@ Game20,RPG,Compact 0-5h,17.99`;
         
         // 4) Expose for your calculator logic
         window.gamesData = games;
+        console.log('✅ Games data loaded successfully:', games.length, 'games');
+        console.log('✅ Column mappings set:', window.columnMappings);
 
       } catch (e) {
         console.error('Sheet load error:', e);
@@ -225,8 +242,9 @@ Game20,RPG,Compact 0-5h,17.99`;
         
         // Price C = Price B + 25%
         const priceC = priceB * 1.25;
-        console.log('Price C calculation: Price B * 1.25 =', priceC);
-        return priceC;
+        const smartPrice = formatSmartPrice(priceC);
+        console.log('Price C calculation: Price B * 1.25 =', priceC, 'Smart formatted:', smartPrice);
+        return smartPrice;
     };
 
     const calculatePriceD = (priceB) => {
@@ -234,8 +252,9 @@ Game20,RPG,Compact 0-5h,17.99`;
         
         // Price D = Price B - 25%
         const priceD = priceB * 0.75;
-        console.log('Price D calculation: Price B * 0.75 =', priceD);
-        return priceD;
+        const smartPrice = formatSmartPrice(priceD);
+        console.log('Price D calculation: Price B * 0.75 =', priceD, 'Smart formatted:', smartPrice);
+        return smartPrice;
     };
 
     const calculatePriceB = (priceA) => {
@@ -244,19 +263,36 @@ Game20,RPG,Compact 0-5h,17.99`;
         let adjustedPrice = priceA;
         let adjustmentFactor = 1.0; // Start with no adjustment
         
-        // Get input values - use existing fields from main calculator
+        // Get input values from form fields
         const wishlistCount = parseInt(document.getElementById('wishlist-count')?.value) || 0;
         
-        const devTimeSelect = document.getElementById('dev-time')?.value || '';
+        // Find development time dropdown
+        const devTimeDropdown = Array.from(document.querySelectorAll('select.input-field')).find(select => {
+            const label = select.closest('.input-group')?.querySelector('label')?.textContent;
+            return label && label.toLowerCase().includes('development time');
+        });
+        const devTimeSelect = devTimeDropdown?.value || '';
         
-        // Get team size from existing dropdown (parallel to development time)
+        // Get team size from dropdown
         const teamSizeDropdown = Array.from(document.querySelectorAll('select.input-field')).find(select => {
             const label = select.closest('.input-group')?.querySelector('label')?.textContent;
-            return label && label.includes('Team Size');
+            return label && label.toLowerCase().includes('team size');
         });
         const teamSize = parseInt(teamSizeDropdown?.value) || 0;
-        const marketingCost = parseFloat(document.getElementById('marketing-cost')?.value) || 0;
-        const countryOrigin = document.getElementById('country-origin')?.value || '';
+        
+        // Find marketing cost input
+        const marketingCostInput = Array.from(document.querySelectorAll('input.input-field')).find(input => {
+            const label = input.closest('.input-group')?.querySelector('label')?.textContent;
+            return label && label.toLowerCase().includes('marketing');
+        });
+        const marketingCost = parseFloat(marketingCostInput?.value) || 0;
+        
+        // Find country dropdown
+        const countryDropdown = Array.from(document.querySelectorAll('select.input-field')).find(select => {
+            const label = select.closest('.input-group')?.querySelector('label')?.textContent;
+            return label && label.toLowerCase().includes('country');
+        });
+        const countryOrigin = countryDropdown?.value || '';
         
         // Get checkbox states from existing adjustments section
         const adjustmentCheckboxes = document.querySelectorAll('.adjustment-options input[type="checkbox"]');
@@ -309,24 +345,23 @@ Game20,RPG,Compact 0-5h,17.99`;
             console.log('Marketing >= $25k: +5%');
         }
         
-        // 4. Player adjustments
+        // 4. Player adjustments - these should increase the price to compensate for losses
+        console.log('Applying player adjustments...');
         if (steamCut) {
-            adjustmentFactor += 0.10; // Increase 10%
-            console.log('Steam cut selected: +10%');
+            adjustmentFactor += 0.10; // Increase 10% to compensate for Steam's cut
+            console.log('Steam cut applied: adjustment factor now', adjustmentFactor);
         }
         if (refundRate) {
-            adjustmentFactor += 0.03; // Increase 3%
-            console.log('Refund rate selected: +3%');
+            adjustmentFactor += 0.03; // Increase 3% for refund rate
+            console.log('Refund rate applied: adjustment factor now', adjustmentFactor);
         }
         if (chargebacks) {
-            // Random 2% increase each time
-            const randomIncrease = 0.02;
-            adjustmentFactor += randomIncrease;
-            console.log('Chargebacks selected: +2%');
+            adjustmentFactor += 0.02; // Increase 2% for chargebacks
+            console.log('Chargebacks applied: adjustment factor now', adjustmentFactor);
         }
         if (generalDiscounting > 0) {
             adjustmentFactor += 0.05; // Increase 5% if any discounting is entered
-            console.log('General discounting entered: +5%');
+            console.log('General discounting applied: adjustment factor now', adjustmentFactor);
         }
         
         // 5. Country of origin adjustments
@@ -342,329 +377,162 @@ Game20,RPG,Compact 0-5h,17.99`;
         }
         // Developing countries: no change
         
-        adjustedPrice = priceA * adjustmentFactor;
+        // Note: Scope is only used for filtering games in Price A calculation, not for Price B adjustments
         
-        console.log('Price B calculation:', {
-            priceA: priceA,
-            adjustmentFactor: adjustmentFactor,
-            finalPriceB: adjustedPrice
-        });
+        // Parse priceA to get numeric value for calculations
+        const basePriceNumeric = parseFloat(priceA.toString().replace('$', '').replace(',', '')) || 0;
         
-        return Math.max(0, adjustedPrice); // Ensure price doesn't go negative
+        console.log('Base price numeric for calculations:', basePriceNumeric);
+        console.log('Final adjustment factor:', adjustmentFactor);
+        
+        // Apply all adjustments
+        adjustedPrice = basePriceNumeric * adjustmentFactor;
+        console.log('Adjusted price calculation:', basePriceNumeric, 'x', adjustmentFactor, '=', adjustedPrice);
+        
+        // Only apply smart pricing if there were actual adjustments
+        if (adjustmentFactor !== 1.0) {
+            const smartPrice = formatSmartPrice(Math.max(0, adjustedPrice));
+            console.log('Smart formatted Price B (with adjustments):', smartPrice);
+            return smartPrice;
+        } else {
+            // No adjustments made, return original price
+            console.log('No adjustments applied, returning original Price A:', priceA);
+            return priceA;
+        }
+    };
+
+    // Smart pricing function to format prices with .99 logic
+    const formatSmartPrice = (price) => {
+        if (price === 'N/A' || isNaN(price) || price <= 0) return 'N/A';
+        
+        const wholePart = Math.floor(price);
+        const decimalPart = price - wholePart;
+        
+        if (decimalPart >= 0.49) {
+            // Round up to next whole number + .99
+            return wholePart + 0.99;
+        } else {
+            // Round down to previous whole number + .99
+            if (wholePart === 0) {
+                return 0.99; // Special case for prices less than 1
+            }
+            return (wholePart - 1) + 0.99;
+        }
     };
 
     const calculatePriceA = (selectedTags) => {
         console.log('=== CALCULATING PRICE A ===');
         console.log(`Processing ${selectedTags ? selectedTags.length : 0} selected genres:`, selectedTags);
         
-        if (!window.gamesData) {
-            console.log('No Google Sheet data loaded');
-            return 'N/A';
-        }
-        
-        console.log('Sheet has', window.gamesData.length, 'games');
-        
-        // Debug: Show all unique genres in the sheet
-        const uniqueGenres = [...new Set(window.gamesData.map(g => g[window.columnMappings.genre]).filter(g => g))];
-        console.log('All unique genres in sheet:', uniqueGenres.sort());
-        
-        // Debug: Show all unique scopes in the sheet
-        const uniqueScopes = [...new Set(window.gamesData.map(g => g[window.columnMappings.scope]).filter(g => g))];
-        console.log('All unique scopes in sheet:', uniqueScopes.sort());
-        
-        // Debug: Show what scope is selected
-        const debugSelectedScope = document.querySelector('.scope-btn.active');
-        const debugScopeValue = debugSelectedScope ? debugSelectedScope.dataset.scope : '';
-        console.log('Selected scope value:', debugScopeValue);
-        
-        // Debug: Show problematic genres specifically
-        const problematicGenres = ['darkfantasy', 'postapocalyptic', 'noir', 'scifi', 'storyrich'];
-        problematicGenres.forEach(searchGenre => {
-            const matchingGames = window.gamesData.filter(g => {
-                const genre = (g[window.columnMappings.genre] || '').toLowerCase().trim();
-                return genre.includes(searchGenre) || genre === searchGenre;
-            });
-            console.log(`${searchGenre} games in sheet:`, matchingGames.length);
-            if (matchingGames.length > 0) {
-                console.log(`First ${searchGenre} game:`, {
-                    name: matchingGames[0][window.columnMappings.name],
-                    genre: matchingGames[0][window.columnMappings.genre],
-                    scope: matchingGames[0][window.columnMappings.scope],
-                    price: matchingGames[0][window.columnMappings.price]
-                });
-            }
-        });
-        
-        // Use the selectedTags parameter passed to the function
-        if (!selectedTags || selectedTags.length === 0) {
-            console.log('No tags selected');
-            return 'N/A';
-        }
-        
-        // Get selected scope
-        const selectedScope = document.querySelector('.scope-btn.active');
-        const scopeValue = selectedScope ? selectedScope.dataset.scope : '';
-        
-        // Get game type (singleplayer/multiplayer)
-        const gameType = document.querySelector('.type-btn.active');
-        const isMultiplayer = gameType && gameType.dataset.type === 'multiplayer';
-        
-        console.log('Selected tags:', selectedTags);
-        console.log('Selected scope:', scopeValue);
-        console.log('Is multiplayer:', isMultiplayer);
-        
         if (!selectedTags || selectedTags.length === 0) {
             console.log('No tags selected, returning N/A');
             return 'N/A';
         }
         
-        // Debug: Check actual data from your sheet with exact headers
-        console.log('Available genres in sheet:', window.gamesData.map(g => g[window.columnMappings.genre]).slice(0, 20));
-        console.log('Total games loaded:', window.gamesData.length);
-        console.log('Expected: 340 games (20 genres × 17 games each)');
-        console.log('Sample game data:', window.gamesData.slice(0, 5).map((g, i) => ({
-            index: i,
-            name: g[window.columnMappings.name],
-            genre: g[window.columnMappings.genre],
-            scope: g[window.columnMappings.scope],
-            price: g[window.columnMappings.price],
-            rawData: g
-        })));
-        
-        // Debug: Show genre distribution and sequential layout
-        const genreCount = {};
-        const genreFirstAppearance = {};
-        window.gamesData.forEach((game, index) => {
-            const genre = game[window.columnMappings.genre];
-            if (genre) {
-                genreCount[genre] = (genreCount[genre] || 0) + 1;
-                if (!genreFirstAppearance[genre]) {
-                    genreFirstAppearance[genre] = index;
-                }
-            }
-        });
-        console.log('Genre distribution (should be 17 each):', genreCount);
-        console.log('Genre first appearance indexes:', genreFirstAppearance);
-        
-        // Show scope distribution to understand what scopes exist in your sheet
-        const scopeCount = {};
-        window.gamesData.forEach((game, index) => {
-            const scope = game[window.columnMappings.scope];
-            if (scope) {
-                scopeCount[scope] = (scopeCount[scope] || 0) + 1;
-            }
-        });
-        console.log('Scope distribution in your sheet:', scopeCount);
-        
-        // Show first few games to verify sequential pattern
-        console.log('First 20 games sequential check:');
-        for (let i = 0; i < Math.min(20, window.gamesData.length); i++) {
-            const genre = window.gamesData[i][window.columnMappings.genre];
-            const scope = window.gamesData[i][window.columnMappings.scope];
-            console.log(`Index ${i}: Genre="${genre}", Scope="${scope}"`);
-        }
-        
-        let matchingGames = [];
-        let genreMatchCounts = {};
-        
-        // Find games that match selected criteria by reading actual scope values from sheet
-        window.gamesData.forEach((game, index) => {
-            // Use dynamically found column names
-            const gameGenre = (game[window.columnMappings.genre] || '').trim();
-            
-            if (!gameGenre) {
-                return;
-            }
-            
-            // Check if this game's genre matches ANY of the selected tags
-            let matchedTag = null;
-            const hasMatchingGenre = selectedTags.some(tag => {
-                const tagLower = tag.toLowerCase().trim();
-                const genreLower = gameGenre.toLowerCase().trim();
-                
-                // Direct exact match first - case insensitive
-                let match = (genreLower === tagLower);
-                
-                // Debug for problematic genres specifically
-                if (['darkfantasy', 'postapocalyptic', 'noir', 'scifi', 'storyrich'].includes(tagLower)) {
-                    console.log(`🔍 ${tagLower} exact match check: "${genreLower}" === "${tagLower}" = ${match}`);
-                    console.log(`🔍 Original gameGenre: "${gameGenre}"`);
-                }
-                
-                // Also try exact match with original casing from sheet
-                if (!match) {
-                    // Map UI tags to exact sheet capitalization
-                    const tagMappings = {
-                        'darkfantasy': 'Dark Fantasy',
-                        'scifi': 'Sci-fi', 
-                        'noir': 'Noir/Detective',
-                        'storyrich': 'Story Rich',
-                        'postapocalyptic': 'Post Apocalyptic',
-                        'fantasy': 'Fantasy',
-                        'action': 'Action',
-                        'rpg': 'RPG',
-                        'strategy': 'Strategy',
-                        'adventure': 'Adventure',
-                        'simulation': 'Simulation',
-                        'sports': 'Sports',
-                        'racing': 'Racing',
-                        'puzzle games': 'Puzzle Games',
-                        'puzzle': 'Puzzle Games',
-                        'horror': 'Horror',
-                        'cozy': 'Cozy/Relaxing',
-                        'survival': 'Survival',
-                        'shooter': 'Shooter',
-                        'platformer': 'Platformer',
-                        'fighting': 'Fighting',
-                        'mmo': 'MMO',
-                        'indie': 'Indie',
-                        'roguelike': 'Roguelike',
-                        'sandbox': 'Sandbox',
-                        'educational': 'Educational',
-                        'cyberpunk': 'Cyberpunk/Dystopian',
-                        'comedy': 'Comedy',
-                        'historical': 'Historical'
-                    };
-                    
-                    const exactSheetGenre = tagMappings[tagLower];
-                    if (exactSheetGenre) {
-                        match = (gameGenre === exactSheetGenre);
-                        console.log(`🔍 Trying exact match: "${gameGenre}" === "${exactSheetGenre}" = ${match}`);
-                        if (match) {
-                            console.log(`✅ Mapped match: "${tag}" -> "${exactSheetGenre}" matches "${gameGenre}"`);
-                        }
-                    }
-                }
-                
-                // Debug each tag matching attempt
-                console.log(`Checking "${gameGenre}" against "${tag}": direct=${genreLower === tagLower}, match=${match}`);
-                
-                // Special debug for Fantasy conflicts
-                if (tagLower === 'fantasy' || tagLower === 'dark fantasy' || genreLower.includes('fantasy')) {
-                    console.log(`🔍 Fantasy debug: gameGenre="${gameGenre}", tagLower="${tagLower}", genreLower="${genreLower}", match=${match}`);
-                    if (tagLower === 'dark fantasy') {
-                        console.log(`🔍 Dark Fantasy specific: looking for exact match with "dark fantasy"`);
-                    }
-                }
-                
-                if (match) {
-                    matchedTag = tag;
-                    console.log(`✅ Genre match: "${gameGenre}" matches "${tag}" at index ${index}`);
-                    
-                    // Track which genres we find matches for (only count once per game)
-                    if (!genreMatchCounts[tag]) {
-                        genreMatchCounts[tag] = 0;
-                    }
-                    genreMatchCounts[tag]++;
-                }
-                return match;
-            });
-            
-            if (!hasMatchingGenre) return;
-            
-            // Read actual scope value from the sheet row
-            const gameScope = (game[window.columnMappings.scope] || '').toLowerCase().trim();
-            
-            // Debug: Show raw scope value before processing
-            if (index < 5) {
-                console.log(`Raw scope for game ${index}: "${game[window.columnMappings.scope]}" -> processed: "${gameScope}"`);
-            }
-            
-            console.log(`Game ${index}: "${game[window.columnMappings.name]}" - Sheet scope: "${gameScope}"`);
-            
-            // ALWAYS filter by scope - must match exactly
-            let scopeMatches = false;
-            
-            if (isMultiplayer) {
-                // For multiplayer, match "Unscoped/Multiplayer" exactly
-                scopeMatches = gameScope.includes('unscoped/multiplayer');
-                console.log(`Multiplayer scope check: "${gameScope}" contains "unscoped/multiplayer" = ${scopeMatches}`);
-            } else if (scopeValue) {
-                // For singleplayer, match the selected scope against actual sheet values
-                if (scopeValue === 'compact') {
-                    scopeMatches = gameScope.includes('compact') && gameScope.includes('0-5');
-                } else if (scopeValue === 'standard') {
-                    scopeMatches = gameScope.includes('standard') && gameScope.includes('5-15');  
-                } else if (scopeValue === 'high') {
-                    scopeMatches = gameScope.includes('high') && gameScope.includes('15h+');
-                }
-                console.log(`Singleplayer scope check: "${gameScope}" matches "${scopeValue}" = ${scopeMatches}`);
-            }
-            
-            console.log(`Scope matching: Sheet scope "${gameScope}" vs selected "${scopeValue}" (multiplayer: ${isMultiplayer}) = ${scopeMatches}`);
-            
-            // Debug: Show detailed scope matching logic
-            if (scopeValue && scopeValue !== '') {
-                console.log(`Detailed scope check for "${gameScope}":`);
-                console.log(`- Looking for: ${scopeValue}`);
-                console.log(`- Is multiplayer: ${isMultiplayer}`);
-                if (!isMultiplayer) {
-                    if (scopeValue === 'compact') {
-                        console.log(`- Compact check: includes('compact')=${gameScope.includes('compact')}, includes('0-5')=${gameScope.includes('0-5')}`);
-                    } else if (scopeValue === 'standard') {
-                        console.log(`- Standard check: includes('standard')=${gameScope.includes('standard')}, includes('5-15')=${gameScope.includes('5-15')}`);
-                    } else if (scopeValue === 'high') {
-                        console.log(`- High check: includes('high')=${gameScope.includes('high')}, includes('15h+')=${gameScope.includes('15h+')}, includes('15+')=${gameScope.includes('15+')}`);
-                    }
-                }
-            }
-            
-            if (scopeMatches) {
-                // Use dynamically found column names
-                const gameName = game[window.columnMappings.name] || '';
-                const priceStr = (game[window.columnMappings.price] || '').toString().replace('$', '').trim();
-                const gamePrice = parseFloat(priceStr);
-                
-                if (!isNaN(gamePrice) && gamePrice > 0 && gameName.trim()) {
-                    matchingGames.push({ 
-                        name: gameName.trim(), 
-                        price: gamePrice, 
-                        genre: gameGenre,
-                        matchedTag: matchedTag 
-                    });
-                    console.log(`✅ Added game: ${gameName.trim()} - $${gamePrice} (genre: ${gameGenre}, matched tag: ${matchedTag})`);
-                }
-            }
-        });
-
-        console.log('Final matching games:', matchingGames.length);
-        console.log('Matching games:', matchingGames);
-        
-        // Store matching games globally
-        window.lastMatchingGames = matchingGames;
-        
-        // Group games by matched tag for debugging
-        const gamesByTag = {};
-        matchingGames.forEach(game => {
-            if (!gamesByTag[game.matchedTag]) {
-                gamesByTag[game.matchedTag] = [];
-            }
-            gamesByTag[game.matchedTag].push(game);
-        });
-        
-        Object.keys(gamesByTag).forEach(tag => {
-            console.log(`${tag}: ${gamesByTag[tag].length} games`);
-            gamesByTag[tag].forEach(game => {
-                console.log(`  - ${game.name} ($${game.price}) [${game.genre}]`);
-            });
-        });
-        
-        if (matchingGames.length === 0) {
-            console.log('❌ No matching games found');
-            console.log('Debug: Total games processed:', window.gamesData.length);
-            console.log('Debug: Genre match counts:', genreMatchCounts);
+        // Check if window.gamesData exists
+        if (!window.gamesData || !Array.isArray(window.gamesData) || window.gamesData.length === 0) {
+            console.log('No games data available, returning N/A');
             return 'N/A';
         }
         
-        // Calculate average
-        const totalPrice = matchingGames.reduce((sum, game) => sum + game.price, 0);
-        const averagePrice = totalPrice / matchingGames.length;
+        // Check if column mappings exist
+        if (!window.columnMappings) {
+            console.log('No column mappings available, returning N/A');
+            return 'N/A';
+        }
         
-        console.log(`✅ REAL CALCULATION FROM YOUR SHEET:`);
-        console.log(`Total: $${totalPrice}, Count: ${matchingGames.length}, Average: $${averagePrice.toFixed(2)}`);
-        console.log('Matching games:', matchingGames.map(g => `${g.name} ($${g.price})`));
+        // Get selected scope
+        const selectedScope = document.querySelector('.scope-btn.active');
+        const scopeValue = selectedScope ? selectedScope.dataset.scope : null;
+        console.log('Selected scope:', scopeValue);
         
-        return averagePrice;
+        // Check if multiplayer is selected
+        const gameType = document.querySelector('.type-btn.active');
+        const isMultiplayer = gameType && gameType.dataset.type === 'multiplayer';
+        console.log('Is multiplayer selected:', isMultiplayer);
+        
+        // Filter games that match selected criteria
+        const matchingGames = window.gamesData.filter((game, index) => {
+            const gameGenre = (game[window.columnMappings.genre] || '').trim();
+            const gameScope = (game[window.columnMappings.scope] || '').trim();
+            
+            if (!gameGenre) return false;
+            
+            // Check genre match (exact match)
+            const genreMatches = selectedTags.includes(gameGenre);
+            if (!genreMatches) return false;
+            
+            // If multiplayer is selected, only use games from "Unscoped/Multiplayer" scope
+            if (isMultiplayer) {
+                const scopeMatches = gameScope === 'Unscoped/Multiplayer';
+                if (!scopeMatches) return false;
+                console.log('Multiplayer game found:', gameGenre, gameScope);
+            } else {
+                // For singleplayer, check scope match if scope is selected
+                if (scopeValue) {
+                    let scopeMatches = false;
+                    if (scopeValue === 'compact') {
+                        scopeMatches = gameScope === 'Compact 0-5h';
+                    } else if (scopeValue === 'standard') {
+                        scopeMatches = gameScope === 'Standard 5-15h';
+                    } else if (scopeValue === 'high') {
+                        scopeMatches = gameScope === 'High 15h+';
+                    }
+                    if (!scopeMatches) return false;
+                }
+            }
+            
+            return true;
+        });
+        
+        console.log(`Found ${matchingGames.length} matching games`);
+        
+        if (matchingGames.length === 0) {
+            console.log('❌ No matching games found');
+            return 'N/A';
+        }
+        
+        // For multiplayer, limit to 2 games per genre (5 genres × 2 games = 10 total)
+        let finalMatchingGames = matchingGames;
+        if (isMultiplayer) {
+            const gamesByGenre = {};
+            matchingGames.forEach(game => {
+                const genre = game[window.columnMappings.genre].trim();
+                if (!gamesByGenre[genre]) {
+                    gamesByGenre[genre] = [];
+                }
+                if (gamesByGenre[genre].length < 2) {
+                    gamesByGenre[genre].push(game);
+                }
+            });
+            
+            finalMatchingGames = [];
+            Object.values(gamesByGenre).forEach(genreGames => {
+                finalMatchingGames.push(...genreGames);
+            });
+            
+            console.log(`Multiplayer: Limited to ${finalMatchingGames.length} games (2 per genre)`);
+        }
+        
+        // Calculate average price
+        const prices = finalMatchingGames.map(game => {
+            const price = parseFloat(game[window.columnMappings.price]);
+            return isNaN(price) ? 0 : price;
+        }).filter(price => price > 0);
+        
+        if (prices.length === 0) {
+            console.log('❌ No valid prices found');
+            return 'N/A';
+        }
+        
+        const averagePrice = prices.reduce((sum, price) => sum + price, 0) / prices.length;
+        console.log(`Average price calculated: $${averagePrice.toFixed(2)} from ${prices.length} games`);
+        
+        // Apply smart pricing
+        const smartPrice = formatSmartPrice(averagePrice);
+        console.log(`Smart price: ${smartPrice}`);
+        
+        return smartPrice;
     };
 
     // Game type selection with CRED-style animations
@@ -886,63 +754,85 @@ Game20,RPG,Compact 0-5h,17.99`;
             // Check if we have the required data
             console.log('Google Sheet data available:', !!window.gamesData);
             console.log('Number of games in sheet:', window.gamesData ? window.gamesData.length : 0);
+            console.log('Column mappings available:', !!window.columnMappings);
+            console.log('Column mappings:', window.columnMappings);
 
-            // Calculate all prices - force fresh calculation each time
-            console.log('=== STARTING FRESH PRICE CALCULATION ===');
-            const priceA = calculatePriceA(selectedTags);
-            console.log('Price A calculated:', priceA);
+            // Use setTimeout to prevent UI blocking
+            setTimeout(function() {
+                try {
+                    // Calculate all prices - force fresh calculation each time
+                    console.log('=== STARTING FRESH PRICE CALCULATION ===');
+                    const priceA = calculatePriceA(selectedTags);
+                    console.log('Price A calculated:', priceA);
+                    
+                    const priceB = calculatePriceB(priceA);
+                    console.log('Price B calculated:', priceB);
+                    
+                    const priceC = calculatePriceC(priceB);
+                    console.log('Price C calculated:', priceC);
+                    
+                    const priceD = calculatePriceD(priceB);
+                    console.log('Price D calculated:', priceD);
+                
+                    console.log('=== FINAL PRICES ===');
+                    console.log('A:', priceA, 'B:', priceB, 'C:', priceC, 'D:', priceD);
             
-            const priceB = calculatePriceB(priceA);
-            console.log('Price B calculated:', priceB);
-            
-            const priceC = calculatePriceC(priceB);
-            console.log('Price C calculated:', priceC);
-            
-            const priceD = calculatePriceD(priceB);
-            console.log('Price D calculated:', priceD);
-        
-            console.log('=== FINAL PRICES ===');
-            console.log('A:', priceA, 'B:', priceB, 'C:', priceC, 'D:', priceD);
-    
-        // Update modal content with exact format requested
-        const priceAElement = document.getElementById('price-a-value');
-        const priceBElement = document.getElementById('price-b-value');
-        const priceCElement = document.getElementById('price-c-value');
-        const priceDElement = document.getElementById('price-d-value');
-        
-        console.log('Updating DOM elements...');
-        console.log('Price A element found:', !!priceAElement);
-        console.log('Price B element found:', !!priceBElement);
-        
-        if (priceAElement) {
-            priceAElement.textContent = priceA === 'N/A' ? 'N/A' : `Average Market Price = $${priceA.toFixed(2)} USD`;
-            console.log('Price A updated to:', priceAElement.textContent);
-        }
-        if (priceBElement) {
-            priceBElement.textContent = priceB === 'N/A' ? 'N/A' : `$${priceB.toFixed(2)}`;
-            console.log('Price B updated to:', priceBElement.textContent);
-        }
-        if (priceCElement) {
-            priceCElement.textContent = priceC === 'N/A' ? 'N/A' : `$${priceC.toFixed(2)}`;
-            console.log('Price C updated to:', priceCElement.textContent);
-        }
-        if (priceDElement) {
-            priceDElement.textContent = priceD === 'N/A' ? 'N/A' : `$${priceD.toFixed(2)}`;
-            console.log('Price D updated to:', priceDElement.textContent);
-        }
-        
-            // Artwork showcase code removed to fix tag button interference
-        
-            // Reset button state
-            this.textContent = originalText;
-            this.style.pointerEvents = 'auto';
-            
-            // Show modal
-            const modal = document.getElementById('results-modal');
-            modal.style.display = 'flex';
-            setTimeout(() => {
-                modal.classList.add('active');
-            }, 10);
+                    // Update modal with results
+                    const priceAElement = document.getElementById('price-a-value');
+                    const priceBElement = document.getElementById('price-b-value');
+                    const priceCElement = document.getElementById('price-c-value');
+                    const priceDElement = document.getElementById('price-d-value');
+                    
+                    if (priceAElement) {
+                        priceAElement.textContent = priceA === 'N/A' ? 'N/A' : `$${priceA}`;
+                        console.log('Price A updated to:', priceAElement.textContent);
+                    }
+                    if (priceBElement) {
+                        priceBElement.textContent = priceB === 'N/A' ? 'N/A' : `$${priceB}`;
+                        console.log('Price B updated to:', priceBElement.textContent);
+                    }
+                    if (priceCElement) {
+                        priceCElement.textContent = priceC === 'N/A' ? 'N/A' : `$${priceC}`;
+                        console.log('Price C updated to:', priceCElement.textContent);
+                    }
+                    if (priceDElement) {
+                        priceDElement.textContent = priceD === 'N/A' ? 'N/A' : `$${priceD.toFixed(2)}`;
+                        console.log('Price D updated to:', priceDElement.textContent);
+                    }
+                    
+                    // Reset button state
+                    this.textContent = originalText;
+                    this.style.pointerEvents = 'auto';
+                    
+                    // Show modal
+                    const modal = document.getElementById('results-modal');
+                    modal.style.display = 'flex';
+                    setTimeout(() => {
+                        modal.classList.add('active');
+                    }, 10);
+                    
+                } catch (error) {
+                    console.error('Calculation error:', error);
+                    console.error('Error stack:', error.stack);
+                    
+                    // Reset button state on error
+                    this.textContent = originalText;
+                    this.style.pointerEvents = 'auto';
+                    
+                    // Show detailed error in modal
+                    const priceAElement = document.getElementById('price-a-value');
+                    if (priceAElement) {
+                        priceAElement.textContent = `Error: ${error.message}`;
+                    }
+                    
+                    // Show modal with error
+                    const modal = document.getElementById('results-modal');
+                    modal.style.display = 'flex';
+                    setTimeout(() => {
+                        modal.classList.add('active');
+                    }, 10);
+                }
+            }.bind(this), 100);
         });
     }
 
@@ -1059,46 +949,11 @@ Game20,RPG,Compact 0-5h,17.99`;
         lastScrollTop = scrollTop;
     });
 
-    // Keep calculator container static - no scroll animations
-    const calculatorContainer = document.querySelector('.calculator-container');
-    if (calculatorContainer) {
-        // Ensure calculator is always visible and in normal position
-        calculatorContainer.style.opacity = '1';
-        calculatorContainer.style.transform = 'none';
-        calculatorContainer.style.transition = 'none';
-    }
-
-    // Smooth hover effects for interactive elements (excluding tag-btn to avoid conflicts)
-    const interactiveElements = document.querySelectorAll('button:not(.tag-btn), .nav-link, .scope-btn, .type-btn');
-    interactiveElements.forEach(element => {
-        element.addEventListener('mouseenter', function() {
-            this.style.transition = 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
-        });
+    // Remove all transitions from interactive elements including tags
+    const allInteractiveElements = document.querySelectorAll('button, .nav-link, .scope-btn, .type-btn, .tag-btn');
+    allInteractiveElements.forEach(element => {
+        element.style.transition = 'none';
     });
-
-    // Form validation with CRED-style feedback
-    const formInputs = document.querySelectorAll('input, select');
-    formInputs.forEach(input => {
-        input.addEventListener('blur', function() {
-            if (this.value.trim() === '') {
-                this.style.borderColor = 'rgba(255, 255, 255, 0.3)';
-            } else {
-                this.style.borderColor = '#ffffff';
-            }
-        });
-    });
-
-    // Premium button special animation
-    const premiumBtn = document.querySelector('.premium-btn');
-    if (premiumBtn) {
-        premiumBtn.addEventListener('mouseenter', function() {
-            this.style.transform = 'translateY(-2px) scale(1.02)';
-        });
-        
-        premiumBtn.addEventListener('mouseleave', function() {
-            this.style.transform = 'translateY(0) scale(1)';
-        });
-    }
 }
 
 // Premium Modal Functions
@@ -1216,37 +1071,41 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log('Tags container:', container);
         }
 
-        // Exact 20-tag layout - properly contained within bounds
-        const staggeredPositions = [
-            { top: '8%', left: '30%' },    // Strategy
-            { top: '8%', left: '60%' },    // RPG
-            { top: '20%', left: '18%' },   // Action
-            { top: '20%', left: '43%' },   // Horror
-            { top: '20%', left: '68%' },   // Cozy
-            { top: '32%', left: '33%' },   // Sci-Fi
-            { top: '32%', left: '58%' },   // Adventure
-            { top: '44%', left: '13%' },   // Story Rich
-            { top: '44%', left: '38%' },   // Puzzle Games
-            { top: '44%', left: '68%' },   // Shooter
-            { top: '56%', left: '23%' },   // Sports
-            { top: '56%', left: '48%' },   // Simulation
-            { top: '56%', left: '73%' },   // Post Apocalyptic
-            { top: '68%', left: '28%' },   // Comedy
-            { top: '68%', left: '58%' },   // Survival
-            { top: '80%', left: '13%' },   // Cyberpunk
-            { top: '80%', left: '38%' },   // Noir/Detective
-            { top: '80%', left: '68%' },   // Dark Fantasy
-            { top: '92%', left: '28%' },   // Fantasy
-            { top: '92%', left: '58%' }    // Historical
+        // Uniform grid layout - 4 columns, 5 rows
+        const gridPositions = [
+            { top: '10%', left: '12.5%' },  // Row 1, Col 1 - Strategy
+            { top: '10%', left: '37.5%' },  // Row 1, Col 2 - RPG
+            { top: '10%', left: '62.5%' },  // Row 1, Col 3 - Action
+            { top: '10%', left: '87.5%' },  // Row 1, Col 4 - Horror
+            
+            { top: '30%', left: '12.5%' },  // Row 2, Col 1 - Cozy
+            { top: '30%', left: '37.5%' },  // Row 2, Col 2 - Sci-Fi
+            { top: '30%', left: '62.5%' },  // Row 2, Col 3 - Adventure
+            { top: '30%', left: '87.5%' },  // Row 2, Col 4 - Story Rich
+            
+            { top: '50%', left: '12.5%' },  // Row 3, Col 1 - Shooter
+            { top: '50%', left: '37.5%' },  // Row 3, Col 2 - Puzzle Games
+            { top: '50%', left: '62.5%' },  // Row 3, Col 3 - Sports
+            { top: '50%', left: '87.5%' },  // Row 3, Col 4 - Simulation
+            
+            { top: '70%', left: '12.5%' },  // Row 4, Col 1 - Post Apocalyptic
+            { top: '70%', left: '37.5%' },  // Row 4, Col 2 - Comedy
+            { top: '70%', left: '62.5%' },  // Row 4, Col 3 - Survival
+            { top: '70%', left: '87.5%' },  // Row 4, Col 4 - Cyberpunk
+            
+            { top: '90%', left: '12.5%' },  // Row 5, Col 1 - Noir/Detective
+            { top: '90%', left: '37.5%' },  // Row 5, Col 2 - Dark Fantasy
+            { top: '90%', left: '62.5%' },  // Row 5, Col 3 - Fantasy
+            { top: '90%', left: '87.5%' }   // Row 5, Col 4 - Historical
         ];
 
         tagButtons.forEach((button, index) => {
             console.log(`Setting up tag button ${index}: ${button.textContent}`);
             
-            // Apply staggered position
-            if (staggeredPositions[index]) {
-                button.style.top = staggeredPositions[index].top;
-                button.style.left = staggeredPositions[index].left;
+            // Apply grid position
+            if (gridPositions[index]) {
+                button.style.top = gridPositions[index].top;
+                button.style.left = gridPositions[index].left;
             }
             
             // Force styles to ensure clickability
@@ -1277,26 +1136,11 @@ document.addEventListener('DOMContentLoaded', function() {
                         this.classList.add('rejected');
                         setTimeout(() => {
                             this.classList.remove('rejected');
-                        }, 1000);
+                        }, 600);
                     }
                 }
             });
             
-            // Add hover effects for rejection feedback
-            button.addEventListener('mouseenter', function() {
-                const activeCount = document.querySelectorAll('.tag-btn.active').length;
-                const isActive = this.classList.contains('active');
-                
-                // Show red on hover if trying to select more than 5 tags
-                if (!isActive && activeCount >= 5) {
-                    this.classList.add('rejected');
-                }
-            });
-            
-            button.addEventListener('mouseleave', function() {
-                // Remove rejection styling when mouse leaves
-                this.classList.remove('rejected');
-            });
         });
         
         // FAQ Accordion functionality
