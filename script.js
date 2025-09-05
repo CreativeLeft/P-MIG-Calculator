@@ -521,7 +521,7 @@ Game20,RPG,Compact 0-5h,17.99`;
                         'roguelike': 'Roguelike',
                         'sandbox': 'Sandbox',
                         'educational': 'Educational',
-                        'cyberpunk': 'Cyberpunk',
+                        'cyberpunk': 'Cyberpunk/Dystopian',
                         'comedy': 'Comedy',
                         'historical': 'Historical'
                     };
@@ -1376,7 +1376,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     modal.style.opacity = '1';
                     modal.style.visibility = 'visible';
                     modal.style.zIndex = '9999';
-                    modal.classList.add('active');
+                    modal.classList.add('show');
                     
                     // Also try adding modal-open class to body
                     document.body.classList.add('modal-open');
@@ -1400,13 +1400,16 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         // Close modal functionality
-        const closeButtons = document.querySelectorAll('.close-modal, .close-btn');
+        const closeButtons = document.querySelectorAll('.close-modal');
         closeButtons.forEach(button => {
-            button.addEventListener('click', function() {
-                const modal = this.closest('.premium-modal') || this.closest('.modal');
+            button.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('Close button clicked');
+                const modal = document.getElementById('premiumModal');
                 if (modal) {
                     modal.style.display = 'none';
-                    modal.classList.remove('active');
+                    modal.classList.remove('show');
                     document.body.classList.remove('modal-open');
                     console.log('Closed modal');
                 }
@@ -1418,7 +1421,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const modal = document.getElementById('premiumModal');
             if (modal && e.target === modal) {
                 modal.style.display = 'none';
-                modal.classList.remove('active');
+                modal.classList.remove('show');
                 document.body.classList.remove('modal-open');
                 console.log('Closed modal by clicking outside');
             }
