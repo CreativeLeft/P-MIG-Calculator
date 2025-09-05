@@ -1298,8 +1298,30 @@ document.addEventListener('DOMContentLoaded', function() {
             button.style.pointerEvents = 'auto';
             button.style.cursor = 'pointer';
             
-            button.addEventListener('click', function() {
+            button.addEventListener('click', function(e) {
                 console.log('Scope clicked:', this.textContent);
+                
+                // Check if button is disabled (multiplayer mode)
+                if (this.disabled) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    // Remove any existing shake class first
+                    this.classList.remove('scope-btn-shake');
+                    
+                    // Force reflow to ensure class removal is processed
+                    this.offsetHeight;
+                    
+                    // Add shake effect for this specific disabled button
+                    this.classList.add('scope-btn-shake');
+                    
+                    // Remove shake class after animation completes
+                    setTimeout(() => {
+                        this.classList.remove('scope-btn-shake');
+                    }, 300);
+                    return;
+                }
+                
                 scopeButtons.forEach(btn => btn.classList.remove('active'));
                 this.classList.add('active');
             });

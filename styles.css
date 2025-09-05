@@ -750,8 +750,12 @@ body {
 /* Shake animation for disabled scope buttons */
 @keyframes shake-no {
     0%, 100% { transform: translateX(0); }
-    20%, 60% { transform: translateX(-5px); }
-    40%, 80% { transform: translateX(5px); }
+    25% { transform: translateX(-3px); }
+    75% { transform: translateX(3px); }
+}
+
+.scope-btn-shake {
+    animation: shake-no 0.3s ease-in-out;
 }
 
 /* Scope button styles */
@@ -759,10 +763,11 @@ body {
     padding: 0.8rem 1.5rem;
     border: 2px solid rgba(255, 255, 255, 0.3);
     border-radius: 8px;
-    background: transparent;
+    background: rgba(20, 20, 20, 0.8);
     color: white;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.2s ease;
+    font-size: 0.9rem;
     font-weight: 500;
 }
 
@@ -774,16 +779,18 @@ body {
     box-shadow: 0 4px 15px rgba(255, 255, 255, 0.2);
 }
 
-.scope-btn:disabled,
-.scope-btn[data-disabled='true'] {
+.scope-btn:disabled {
+    background: rgba(40, 40, 40, 0.3);
+    color: rgba(255, 255, 255, 0.3);
+    border-color: rgba(100, 100, 100, 0.3);
     opacity: 0.3;
     cursor: not-allowed;
-    pointer-events: none;
-    animation: shake-no 0.5s ease-in-out infinite;
+    pointer-events: auto;
 }
 
 .scope-btn:not(:disabled):hover {
     transform: translateY(-2px);
+    background: rgba(192, 192, 192, 0.3);
     border-color: rgba(255, 255, 255, 0.6);
 }
 
