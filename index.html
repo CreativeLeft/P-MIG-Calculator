@@ -1266,7 +1266,7 @@
                         </div>
                     </div>
                     
-                    <a href="https://rzp.io/rzp/G9qznz0R" target="_blank" class="get-pmig-btn" style="text-decoration: none; display: block; text-align: center;">Get P*MIG For Life</a>
+                    <a href="https://rzp.io/rzp/G9qznz0R" target="_blank" class="get-pmig-btn" onclick="window.authManager && window.authManager.setPremiumTier('small_indie')" style="text-decoration: none; display: block; text-align: center;">Get P*MIG For Life</a>
                 </div>
                 
                 <div class="pricing-card">
@@ -1295,7 +1295,7 @@
                         </div>
                     </div>
                     
-                    <a href="https://rzp.io/rzp/NcDmU1iO" target="_blank" class="get-pmig-btn" style="text-decoration: none; display: block; text-align: center;">Get P*MIG For Life</a>
+                    <a href="https://rzp.io/rzp/NcDmU1iO" target="_blank" class="get-pmig-btn" onclick="window.authManager && window.authManager.setPremiumTier('veteran_indie')" style="text-decoration: none; display: block; text-align: center;">Get P*MIG For Life</a>
                 </div>
             </div>
             
@@ -1306,6 +1306,12 @@
         </div>
     </div>
 
+    <!-- Supabase JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <!-- Our scripts -->
+    <script src="supabase-config.js"></script>
+    <script src="auth.js"></script>
     <script src="script.js"></script>
 </body>
 </html>

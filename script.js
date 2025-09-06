@@ -806,6 +806,13 @@ Game20,RPG,Compact 0-5h,17.99`;
                         console.log('Price D updated to:', priceDElement.textContent);
                     }
                     
+                    // Apply premium blur effects after results are shown
+                    setTimeout(() => {
+                        if (window.authManager && !window.authManager.isPremium) {
+                            window.authManager.applyPremiumBlur();
+                        }
+                    }, 100);
+                    
                     // Reset button state
                     this.textContent = originalText;
                     this.style.pointerEvents = 'auto';
@@ -1233,19 +1240,32 @@ document.addEventListener('DOMContentLoaded', function() {
                     return;
                 }
                 
-                // Show results modal
-                const modal = document.getElementById('results-modal');
-                if (modal) {
-                    modal.style.display = 'flex';
-                    console.log('Showing results modal');
-                    
-                    // Calculate prices (simplified)
-                    document.getElementById('priceA').textContent = '$19.99';
-                    document.getElementById('priceB').textContent = '$24.99';
-                    document.getElementById('priceC').textContent = '$29.99';
-                    document.getElementById('priceD').textContent = '$14.99';
-                }
+                // Allow all users to use the calculator - no authentication blocking
+                // The original calculation logic will run and show results
+                // Premium blur effects will be applied in the results modal based on user status
             });
+            
+            // Add method to show upgrade prompt in results modal
+            calcButton.addUpgradePromptToModal = function() {
+                const modal = document.getElementById('results-modal');
+                const existingPrompt = modal.querySelector('.upgrade-prompt');
+                if (existingPrompt) return; // Already added
+                
+                const upgradePrompt = document.createElement('div');
+                upgradePrompt.className = 'upgrade-prompt';
+                upgradePrompt.innerHTML = `
+                    <div style="background: rgba(255, 215, 0, 0.1); border: 1px solid #ffd700; border-radius: 8px; padding: 15px; margin: 15px 0; text-align: center;">
+                        <h4 style="color: #ffd700; margin: 0 0 10px 0;">🔒 Unlock Full Pricing Analysis</h4>
+                        <p style="margin: 0 0 15px 0; color: rgba(255, 255, 255, 0.9);">Get access to all 4 pricing strategies and detailed market analysis</p>
+                        <button onclick="window.authManager.showPremiumModal()" style="background: #ffd700; color: #000; border: none; padding: 10px 20px; border-radius: 6px; font-weight: bold; cursor: pointer;">Upgrade to Premium</button>
+                    </div>
+                `;
+                
+                const resultsContent = modal.querySelector('.results-content');
+                if (resultsContent) {
+                    resultsContent.appendChild(upgradePrompt);
+                }
+            };
         }
         
         // Get Premium button - multiple selectors to catch all variants
