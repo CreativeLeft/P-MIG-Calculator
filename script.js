@@ -85,8 +85,8 @@ function initApp() {
         });
     }
 
-    // 1) Load CSV from your published sheet via server proxy
-    const CSV_URL = '/api/sheets';
+    // 1) Load CSV from your published sheet directly
+    const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRwLgBkywXJZUQAHdXLrfoxHIdro9wrp7XnSa61OptNi--Y2Mt53kJvWa3CNqeFXOQRDsklfewfF98D/pub?output=csv';
     
     // Fallback sample data for testing (replace with real sheet once accessible)
     const SAMPLE_CSV_DATA = `GAME NAME,Genre/Theme,SCOPE/Avg. Playtime,Launch Price(Adj.)
@@ -115,7 +115,13 @@ Game20,RPG,Compact 0-5h,17.99`;
       try {
         let csvText;
         try {
-          const res = await fetch(CSV_URL, { cache: 'no-store' });
+          const res = await fetch(CSV_URL, { 
+            cache: 'no-store',
+            mode: 'cors',
+            headers: {
+              'Accept': 'text/csv,text/plain,*/*'
+            }
+          });
           if (!res.ok) throw new Error(`HTTP ${res.status}`);
           csvText = await res.text();
           console.log('✅ Successfully loaded from Google Sheet');
